@@ -1,0 +1,371 @@
+{% load static humanize event_custom_tags %}
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Testing out the Template System</title>
+    <style>
+      .row {
+        background-color: lightskyblue;
+      }
+      .altrow {
+        background-color: lightgray;
+      }
+      table td {
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Comment Tag</h2>
+    <!-- This is a normal HTML comment which does show in your browser-->
+    {% comment "this won't show at all in your browser" %}
+      <p>Three six nine, the goose drank wine</p>
+    {% endcomment %}
+
+    <h2>Cycle Tag</h2>
+    {% for i in '12345' %}
+      <p style="color: {% cycle 'blue' 'brown' 'red' 'cyan' %};">
+        Colored Text
+      </p>
+    {% endfor %}
+
+    <p><strong>Cycle tag used to format a table:</strong></p>
+    <table border=0 style="width: 100px">
+      {% for i in '12345' %}
+      <tr class="{% cycle 'row' 'altrow' %}">
+        <td>{{ i }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  
+    <p><strong>Resetcycle tag:</strong></p>
+    <table border=0 style="width: 100px">
+      {% for i in '12345' %}
+      <tr class="{% cycle 'row' 'altrow' %}">
+        <td>{{ i }}</td>
+      </tr>
+      {% resetcycle %}
+      {% endfor %}
+    </table>
+
+    <h2>Filter Tag</h2>
+    {% filter striptags|upper %}
+    <p>This text will be converted to uppercase and have the HTML tags <em>removed</em>.</p>
+    {% endfilter %}
+
+    <h2>Firstof Tag</h2>
+    <p>{% firstof None False '' empty_list 'This one!' 'Not this one' %}</p>
+
+    <h2>For Tag</h2>
+    <p><strong>List Colors:</strong></p>
+    <ul>
+    {% for item in color_list %}
+    <li>{{ item }}{{ forloop.counter }}</li>
+    {% endfor %}
+    </ul>
+    <p><strong>The for loop variables:</strong></p>
+    <table border=1>
+    <tr>
+        <th>Item</th>
+        <th>forloop.counter</th>
+        <th>forloop.counter0</th>
+        <th>forloop.revcounter</th>
+        <th>forloop.revcounter0</th>
+        <th>forloop.first</th>
+        <th>forloop.last</th>
+    </tr>
+    {% for item in color_list %}
+    <tr>
+        <td>{{ item }}</td>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ forloop.counter0 }}</td>
+        <td>{{ forloop.revcounter }}</td>
+        <td>{{ forloop.revcounter0 }}</td>
+        <td>{{ forloop.first }}</td>
+        <td>{{ forloop.last }}</td>
+    </tr>
+    {% endfor %}
+    </table>
+    <p><strong>For...empty Tag</strong></p>
+    <p><strong>This list has items to show:</strong></p>
+    <ul>
+    {% for item in color_list %}
+    <li>{{ item }}</li>
+    {% empty %}
+    <li>Nothing in the list!</li>
+    {% endfor %}
+    </ul>
+    <p><strong>But this one doesn't:</strong></p>
+    <ul>
+    {% for item in empty_list %}
+    <li>{{ item }}</li>
+    {% empty %}
+    <li>Nothing in the list!</li>
+    {% endfor %}
+    </ul>
+
+    <h2>If Tag</h2>
+    {% if empty_list %}
+    This line won't show as list is empty.
+    {% elif color_list %}
+    color_list is not empty, so this line shows.
+    {% else %}
+    Optional else clause. This won't show in this example.
+    {% endif %}
+    <br />
+    {% if somevar > 5 %}
+    somevar is greater than 5
+    {% else %}
+    somevar is less than 5
+    {% endif %}
+    <br />
+    {% if empty_list and color_list %}
+    Both lists have content
+    {% else%}
+    One list is empty
+    {% endif %}
+    <br />
+    {% if empty_list or color_list %}
+    At least one list has content
+    {% endif %}
+    <br />
+    {% if not empty_list %}
+    Negated an empty list, so this will print.
+    {% endif %}
+    <br />
+    {% if anothervar is True %}
+    This prints if and only if anothervar is True.
+    {% endif %}
+    <br />
+    {% if novar is None %}
+    This appears if novar is None, or if novar is not found in the context.
+    {% endif %}
+    <br />
+    {% if anothervar is True %}
+    This prints if and only if anothervar is True.
+    {% endif %}
+    <br />
+    {% if novar is None %}
+    This appears if novar is None, or if novar is not found in the context.
+    {% endif %}
+    <br />
+    {% if "dog" in "catdog" %}
+    The best half!
+    {% endif %}
+    <br />
+    {% if "orange" in color_list %}
+    Orange is in the list!
+    {% else %}
+    Orange is not in the list!
+    {% endif %}
+    <br />
+    {% if color_list|length < 10 %}
+    List has less than 10 elements
+    {% endif %}
+    <br />
+    {% if somevar >= 5 and anothervar != 30 %}
+    Both comparisons are true, so this will print.
+    {% endif %}
+
+    <h2>Lorem Tag</h2>
+    <p><strong>This one will output a number of words:</strong></p>
+    {% lorem 5 w %}
+    <p><strong>This one outputs a number of HTML paragraphs:</strong></p>
+    {% lorem 2 p %}
+    <p><strong>This one outputs plain text paragraphs:</strong></p>
+    {% lorem 1 b %}
+    <p><strong>And finally, we can output a number of random words:</strong></p>
+    {% lorem 10 w random %}
+    <p><strong>or random paragraphs:</strong></p>
+    {% lorem 3 p random %}
+
+    <h2>Now Tag</h2>
+    {% now "m-d-Y H:i" %}
+
+    <h2>Regroup Tag</h2>
+    {% regroup best_bands by country as band_list %}
+    <p>Best Bands:</p>
+    <ul>
+      {% for band in band_list %}
+      <li>
+      {{ band.grouper }}
+      <ul>
+        {% for band in band.list %}
+        <li>{{ band.name }}</li>
+        {% endfor %}
+      </ul>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <h2>Url Tag</h2>
+    {% url 'tdemo' %}
+
+    <h2>Widthratio Tag</h2>
+    <img src=" {% static 'redbar.png'%}" width="{% widthratio 33 100 200 %}">
+    <img src=" {% static 'bluebar.png'%}" height="200px" width="{% widthratio 33 100 200 %}">
+    <img src=" {% static 'greenbar.png'%}" height="300px" width="{% widthratio 33 100 200 %}">
+
+    <h2>With Tag</h2>
+    {% with total_items=color_list|length %}
+    The list has {{ total_items }} item{{ total_items|pluralize }}
+    {% endwith %}
+    <hr />
+
+  <h1>Template Filters</h1>
+
+    <h2>Add Filter</h2>
+    {{ somevar|add:'12' }}<br />
+    {{ somevar|add:anothervar }}<br />
+
+    <h2>Addslashes Filter</h2>
+    {{ "I'm not. She didn't."|addslashes }}<br />
+    {{ 'He said "NO!"'|addslashes }}
+
+    <h2>Sentence Casing Filters</h2>
+    {{ "the 'capfirst' filter will capitalize the first word"|capfirst }}<br />
+    {{ "The 'lower' Filter will Convert the Sentence to LOWERCASE"|lower }}<br />
+    {{ "the 'upper' filter will convert the sentence to uppercase"|upper }}<br />
+    {{ "and the 'title' filter will convert the sentence to title case"|title }}
+
+    <h2>Field Alignment Filters</h2>
+    <pre>|{{ "Left Justified"|ljust:"30" }}|</pre><br />
+    <pre>|{{ "Centered"|center:"30" }}|</pre><br />
+    <pre>|{{ "Right Justified"|rjust:"30" }}|</pre>
+
+    <h2>Cut Filter</h2>
+    {{ "I really don't like the letter 'e' for some reason"|cut:"e" }}
+
+    <h2>Formatting Dates and Times</h2>
+    {{ today|date:"l jS E Y" }}<br />
+    {{ today|time:"H:i" }}
+
+    <h2>Showing Default Values</h2>
+    {{ empty_list|default:"Empty list" }}<br />
+    {{ empty_list|default_if_none:"This won't show as Empty != None" }}<br />
+    {{ None|default_if_none:"Obvious, but you get the idea" }}
+
+    <h2>Sorting Dictionaries</h2>
+    {{ best_bands|dictsort:"name"}}
+    {{ best_bands|dictsortreversed:"name"}}
+
+    <h2>Divisibleby Filter</h2>
+    {{ anothervar|divisibleby:"4" }}<br />
+    {{ anothervar|divisibleby:"3" }}
+
+    <h2>Filesizeformat Filter</h2>
+    <p><strong></strong></p>
+    {{ 44040192|filesizeformat }}
+
+    <h2>Retrieving the First and Last Items from a List</h2>
+    {{ color_list|first }}
+    {{ color_list|last }}
+
+    <h2>Format Floating Point Numbers</h2>
+    {{ 3.14159265|floatformat }}
+    {{ 3.14159265|floatformat:4 }}
+
+    <h2>get_digit Filter</h2>
+    <p><strong></strong></p>
+    {{ anothervar|get_digit:1 }}<br />
+    {{ anothervar|get_digit:0 }}<br />
+    {{ "Hello"|get_digit:2 }}<br />
+
+    <h2>Join Filter</h2>
+    <p><strong></strong></p>
+    {{ color_list|join:" and " }}
+
+    <h2>Output JSON</h2>
+    <p><strong>JSON can be output using the <code>json_script</code> filter:</strong></p>
+    <p>(You will need to look in the page source to see this one)</p>
+    {{ best_bands|json_script:"best-bands" }}
+    {{ venues|json_script:"all-venues" }}
+
+    <h2>Length_is Filter</h2>
+    {{ color_list|length_is:"4" }}<br />
+    {{ empty_list|length_is:"2" }}<br />
+    {{ "Hello"|length_is:"5" }}
+
+    <h2>Make_list Filter</h2>
+    {{ "Hello"|make_list }}<br />
+    {{ "12345"|make_list }}<br />
+    {{ anothervar|make_list }}<br />
+    {{ 3.14159265|make_list }}
+
+    <h2>Phone2numeric Filter</h2>
+    {{ "1800 BITE ME"|phone2numeric }}
+
+    <h2>Random Filter</h2>
+    <p>(This list will change every time you refresh the browser)</p>
+    {{ color_list|random }}<br />
+    {{ color_list|random }}<br />
+    {{ color_list|random }}
+
+    <h2>Slice Filter</h2>
+    {{ color_list|slice:":3" }}<br />
+    {{ color_list|slice:"2:" }}<br />
+    {{ color_list|slice:":-1" }}<br />
+    {{ color_list|slice:"1:2" }}
+
+    <h2>Slugify Filter</h2>
+    {{ "Number of the Beast"|slugify }}
+    {{ "slugify won't use these: /\$#^&"|slugify }}
+
+    <h2>Stringformat Filter</h2>
+    {{ 314159265|stringformat:"E" }}<br />
+    {{ 3.14159265|stringformat:".2f" }}
+
+    <h2>Striptags Filter</h2>
+    {{ "<h1>The Title</h1>"|striptags }}
+
+    <h2>Calculating the Difference Between Dates</h2>
+    {{ today|timesince:future }}
+    {{ today|timeuntil:past }}
+
+    <h2>Truncating Strings</h2>
+    {{ "The Title"|truncatechars:7 }}<br />
+    {{ "<em>The Title</em>"|truncatechars_html:7 }}<br />
+    {{ "The Title"|truncatewords:1 }}<br />
+    <p><strong>HTML aware version:</strong></p>
+    {{ "<em>The Title</em>"|truncatewords_html:1 }}
+
+    <h2>Unordered Lists</h2>
+    <ul>
+      {{ aussie_bands|unordered_list }}
+    </ul>
+
+    <h2>Encoding URLs</h2>
+    {{ "https://bestbands.example.com/bands?album=Master of Puppets&rating=awesome"|urlencode }}
+
+    <h2>Creating Hyperlinks</h2>
+    <p><strong></strong></p>
+    {{ "The djangobook.com website is awesome!"|urlize }}<br />
+    {{ "The djangobook.com website is awesome!"|urlizetrunc:11 }}
+
+    <h2>Wordwrap Filter</h2>
+    <pre>{{ "Now I lay me down to sleep"|wordwrap:4 }}</pre>
+
+    <h2>Yesno Filter</h2>
+    {{ True|yesno }}<br />
+    {{ False|yesno }}<br />
+    {{ None|yesno }}<br />
+    {{ True|yesno:"yeah baby,heck no,meh" }}<br />
+    {{ False|yesno:"yeah baby,heck no,meh" }}<br />
+    {{ None|yesno:"yeah baby,heck no,meh" }}
+
+    <h2>The Humanize Filters</h2>
+    {{ 1|apnumber }}, {{ 5|apnumber }}, {{ 12|apnumber }}<br />
+    {{ 4500|intcomma }}; {{ 42123456.78|intcomma }}<br />
+    {{ 4000000|intword }}; {{ 42000000000|intword }}<br />
+    {{ today|naturalday }}<br />
+    {{ today|naturaltime }}; {{ past|naturaltime }}; {{ future|naturaltime }}<br />
+    {{ 1|ordinal }}, {{ 2|ordinal }}, {{ 3|ordinal }}, {{ 20|ordinal }}
+
+    <h2>Custom Tags and Filters</h2>
+    {{ "James is in rehab again"|reverse }}<br />
+    {{ 100|reverse }}<br />
+    {% create_date today %}
+    {% announcements %}
+ </body>
+</html>

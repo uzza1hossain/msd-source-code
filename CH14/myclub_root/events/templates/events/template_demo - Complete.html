@@ -1,0 +1,429 @@
+{% load static humanize event_custom_tags %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Testing out the Template System</title>
+  <style>
+    .row {
+      background-color: lightskyblue;
+    }
+    .altrow {
+      background-color: lightgray;
+    }
+    table td {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>Template Tags</h1>
+  <h2>Comment Tag</h2>
+  <p>The comment tag stops the comment block from showing in your template at all. (You need to look at the page source code for the rest of this example)</p>
+  <!-- This is a normal HTML comment which does show in your browser-->
+  {% comment "this won't show at all in your browser" %}
+  <p>Three six nine, the goose drank wine</p>
+  {% endcomment %}
+  <p>Use a comment tag when you want to hide a section of your template. E.g. a section that is only shown in debug</p>
+
+  <h2>Cycle Tag</h2>
+  <p><strong>The cycle tag will cycle through all its values:</strong></p>
+  {% for i in '12345' %}
+  <p style="color: {% cycle 'blue' 'brown' 'red' 'cyan' %};">Colored Text</p>
+  {% endfor %}
+  <p>There are only 4 colors in this list, but the loop runs 5 times, so cycle loops back to the beginning.</p>
+  <p><strong>It's very common to see the cycle tag used to format a table:</strong></p>
+  <table border=0 style="width: 100px">
+    {% for i in '12345' %}
+    <tr class="{% cycle 'row' 'altrow' %}">
+      <td>{{ i }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p><strong>Django also has a <code>resetcycle</code> tag, to reset the cycle. This example will print all rows the same color as the cycle is reset on each loop:</strong></p>
+  <table border=0 style="width: 100px">
+    {% for i in '12345' %}
+    <tr class="{% cycle 'row' 'altrow' %}">
+      <td>{{ i }}</td>
+    </tr>
+    {% resetcycle %}
+    {% endfor %}
+  </table>
+
+  <h2>Filter Tag</h2>
+  <p>The filter tag applies the selected filters to the text in the filter block.</p>
+  {% filter striptags|upper %}
+  <p>This text will be converted to uppercase and have the HTML tags <em>removed</em>.</p>
+  {% endfilter %}
+
+
+  <h2>Firstof Tag</h2>
+  <p><strong>The firstof tag will output the first non-False argument:</strong></p>
+  <p>{% firstof None False '' empty_list 'This one!' 'Not this one' %}</p>
+
+  <h2>For Tag</h2>
+  <p><strong>The for tag behaves the same way as a Python for loop and uses a simple "for <code>object</code> in <code>list</code>" format:</strong></p>
+  <ul>
+    {% for item in color_list %}
+    <li>{{ item }}{{ forloop.counter }}</li>
+    {% endfor %}
+  </ul>
+  <p><strong>The for loop also keeps track of a few variables for you to use in your template logic:</strong></p>
+  <table border=1>
+    <tr>
+      <th>Item</th>
+      <th>forloop.counter</th>
+      <th>forloop.counter0</th>
+      <th>forloop.revcounter</th>
+      <th>forloop.revcounter0</th>
+      <th>forloop.first</th>
+      <th>forloop.last</th>
+    </tr>
+    {% for item in color_list %}
+    <tr>
+      <td>{{item}}</td>
+      <td>{{forloop.counter}}</td>
+      <td>{{forloop.counter0}}</td>
+      <td>{{forloop.revcounter}}</td>
+      <td>{{forloop.revcounter0}}</td>
+      <td>{{forloop.first}}</td>
+      <td>{{forloop.last}}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <h2>For...empty Tag</h2>
+  <p><strong>The for...empty tag will show the empty clause if there are no items in the list:</strong></p>
+  <p><strong>This list has items to show:</strong></p>
+  <ul>
+    {% for item in color_list %}
+    <li>{{ item }}</li>
+    {% empty %}
+    <li>Nothing in the list!</li>
+    {% endfor %}
+  </ul>
+  <p><strong>But this one doesn't:</strong></p>
+  <ul>
+    {% for item in empty_list %}
+    <li>{{ item }}</li>
+    {% empty %}
+    <li>Nothing in the list!</li>
+    {% endfor %}
+  </ul>
+
+  <h2>If Tag</h2>
+  <p><strong>The if tag works much the same way as Python's if statement:</strong></p>
+  {% if empty_list %}
+  This line won't show as list is empty.
+  {% elif color_list %}
+  color_list is not empty, so this line shows.
+  {% else %}
+  Optional else clause. This won't show in this example.
+  {% endif %}
+  <p><strong>Python's boolean operators work in if tags:</strong></p>
+  {% if somevar > 5 %}
+  somevar is greater than 5
+  {% else %}
+  somevar is less than 5
+  {% endif %}
+  <p><strong>You can also use filters with boolean operators and the if tag:</strong></p>
+  {% if color_list|length < 10 %}
+  List has less than 10 elements
+  {% endif %}
+  <p><strong>The <code>and</code>, <code>or</code> and <code>not</code> operators also work with the if tag:</strong></p>
+  {% if empty_list and color_list %}
+  Both lists have content
+  {% else%}
+  One list is empty
+  {% endif %}
+  <br />
+  {% if empty_list or color_list %}
+  At least one list has content
+  {% endif %}
+  <br />
+  {% if not empty_list %}
+  Negated an empty list, so this will print.
+  {% endif %}
+  <p><strong>The <code>in</code> operator is supported by the if tag:</strong></p>
+  {% if "dog" in "catdog" %}
+  The best half!
+  {% endif %}
+  <br />
+  {% if "orange" in color_list %}
+  Orange is in the list!
+  {% else %}
+  Orange is not in the list!
+  {% endif %}
+  <p><strong>The <code>is</code> operator is supported as well:</strong></p>
+  {% if anothervar is True %}
+  This prints if and only if anothervar is True.
+  {% endif %}
+  {% if novar is None %}
+  This appears if novar is None, or if novar is not found in the context.
+  {% endif %}
+  <p><strong>Operators can be chained to create more complex expressions:</strong></p>
+  {% if somevar >= 5 and anothervar != 30 %}
+  Both comparisons are true, so this will print.
+  {% endif %}
+
+  <h2>Lorem Tag</h2>
+  <p>The lorem tag outputs Lorem Ipsum sample text. The number of words an paragraphs output are set by the provided arguments.</p>
+  <p><strong>This one will output a number of words:</strong></p>
+  {% lorem 5 w %}
+  <p><strong>This one outputs a number of HTML paragraphs:</strong></p>
+  {% lorem 2 p %}
+  <p><strong>This one outputs plain text paragraphs:</strong></p>
+  {% lorem 1 b %}
+  <p><strong>And finally, we can output a number of random words:</strong></p>
+  {% lorem 10 w random %}
+  <p><strong>or random paragraphs:</strong></p>
+  {% lorem 3 p random %}
+
+  <h2>Now Tag</h2>
+  <p><strong>Shows the current date and time formatted according to the supplied string:</strong></p>
+  {% now "m-d-Y H:i" %}
+
+  <h2>Regroup Tag</h2>
+  <p><strong>The regroup tag rearranges a list of objects by a common attribute:</strong></p>
+  {% regroup best_bands by country as band_list %}
+  <p>Best Bands:</p>
+  <ul>
+    {% for band in band_list %}
+    <li>
+      {{ band.grouper }}
+      <ul>
+        {% for band in band.list %}
+        <li>{{ band.name }}</li>
+        {% endfor %}
+      </ul>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <h2>Url Tag</h2>
+  <p><strong>The url tag avoids hard coding urls in the template by doing a reverse lookup of the url name provided to the tag. For example, you can retrieve the url for this page by doing a reverse lookup for the url name <code>tdemo</code>:</strong></p>
+  {% url 'tdemo' %}
+
+  <h2>Widthratio Tag</h2>
+  <p><strong>Set the width of an image proportional to a maximum width. Useful for barcharts and the like:</strong></p>
+  <img src=" {% static 'redbar.png'%}" width="{% widthratio 33 100 200 %}">
+  <img src=" {% static 'bluebar.png'%}" height="200px" width="{% widthratio 33 100 200 %}">
+  <img src=" {% static 'greenbar.png'%}" height="300px" width="{% widthratio 33 100 200 %}">
+
+  <h2>With Tag</h2>
+  <p><strong>Creates an alias for a complex variable. Useful for reducing the overhead of methods that hit the database multiple times:</strong></p>
+  {% with total_items=color_list|length %}
+  The list has {{ total_items }} item{{ total_items|pluralize }}
+  {% endwith %}
+  <hr />
+
+  <h1>Template Filters</h1>
+
+  <h2>Add Filter</h2>
+  <p><strong>Adds the argument to the value:</strong></p>
+  {{ somevar|add:'12' }}<br />
+  {{ somevar|add:anothervar }}<br />
+
+  <h2>Addslashes Filter</h2>
+  <p><strong>Adds slashes before quotes in the value:</strong></p>
+  {{ "I'm not. She didn't."|addslashes }}<br />
+  {{ 'He said "NO!"'|addslashes }}
+
+  <h2>Sentence Casing Filters</h2>
+  <p><strong>Django's template language has four filters to change the casing of sentences:</strong></p>
+  {{ "the 'capfirst' filter will capitalize the first word"|capfirst }}<br />
+  {{ "The 'lower' Filter will Convert the Sentence to LOWERCASE"|lower }}<br />
+  {{ "the 'upper' filter will convert the sentence to uppercase"|upper }}<br />
+  {{ "and the 'title' filter will convert the sentence to title case"|title }}
+
+  <h2>Field Alignment Filters</h2>
+  <p><strong>The field alignment filters <code>ljust</code>, <code>rjust</code> and <code>center</code> will align the value within a field of the specified number of characters:</strong></p>
+  <pre>|{{ "Left Justified"|ljust:"30" }}|</pre><br />
+  <pre>|{{ "Centered"|center:"30" }}|</pre><br />
+  <pre>|{{ "Right Justified"|rjust:"30" }}|</pre>
+
+  <h2>Cut Filter</h2>
+  <p><strong>Removes all values of the argument from the given string:</strong></p>
+  {{ "I really don't like the letter 'e' for some reason"|cut:"e" }}
+
+  <h2>Formatting Dates and Times</h2>
+  <p><strong>Formats the date or time according to the given format:</strong></p>
+  {{ today|date:"l jS E Y" }}<br />
+  {{ today|time:"H:i" }}
+
+  <h2>Showing Default Values</h2>
+  <p><strong>The <code>default</code> tag will show the default value if the value is empty or False, the <code>default_if_none</code> value will show if the value is None:</strong></p>
+  {{ empty_list|default:"Empty list" }}<br />
+  {{ empty_list|default_if_none:"This won't show as Empty != None" }}<br />
+  {{ None|default_if_none:"Obvious, but you get the idea" }}
+
+  <h2>Sorting Dictionaries</h2>
+  <p><strong>Sort a list of dictionaries by the given key with <code>dictsort</code>:</strong></p>
+  {{ best_bands|dictsort:"name"}}
+  <p><strong>You can also sort in reverse with <code>dictsortreversed</code>:</strong></p>
+  {{ best_bands|dictsortreversed:"name"}}
+
+  <h2>Divisibleby Filter</h2>
+  <p><strong>Test if the value is divisible by the argument:</strong></p>
+  {{ anothervar|divisibleby:"4" }}<br />
+  {{ anothervar|divisibleby:"3" }}
+
+  <h2>Filesizeformat Filter</h2>
+  <p><strong>Filter the value as a human readable file size:</strong></p>
+  {{ 44040192|filesizeformat }}
+
+  <h2>Retrieving the First and Last Items from a List</h2>
+  <p><strong>Retrieve the first item with the <code>first</code> filter:</strong></p>
+  {{ color_list|first }}
+  <p><strong>Retrieve the last item with the <code>last</code> filter:</strong></p>
+  {{ color_list|last }}
+
+  <h2>Format Floating Point Numbers</h2>
+  <p><strong>Floating point numbers can be rounded with the <code>floatformat</code> filter. By default it rounds to one decimal place:</strong></p>
+  {{ 3.14159265|floatformat }}
+  <p><strong>You can also specify the number of decimal places:</strong></p>
+  {{ 3.14159265|floatformat:4 }}
+
+  <h2>get_digit Filter</h2>
+  <p><strong>Return the requested digit from the given whole number. Returns the original value if it's not an integer or the argument is less than 1:</strong></p>
+  {{ anothervar|get_digit:1 }}<br />
+  {{ anothervar|get_digit:0 }}<br />
+  {{ "Hello"|get_digit:2 }}<br />
+
+  <h2>Join Filter</h2>
+  <p><strong>Joins a list with the given string to create a single string:</strong></p>
+  {{ color_list|join:" and " }}
+
+  <h2>Output JSON</h2>
+  <p><strong>JSON can be output using the <code>json_script</code> filter:</strong></p>
+  <p>(You will need to look in the page source to see this one)
+  {{ best_bands|json_script:"best-bands" }}
+  {{ venues|json_script:"all-venues" }}
+
+  <h2>Length_is Filter</h2>
+  <p><strong>True if the length of the value matches the argument:</strong></p>
+  {{ color_list|length_is:"4" }}<br />
+  {{ empty_list|length_is:"2" }}<br />
+  {{ "Hello"|length_is:"5" }}
+
+  <h2>Make_list Filter</h2>
+  <p><strong>Turns the given value into a list. Numbers will be cast to strings before converting to a list:</strong></p>
+  {{ "Hello"|make_list }}<br />
+  {{ "12345"|make_list }}<br />
+  {{ anothervar|make_list }}<br />
+  {{ 3.14159265|make_list }}
+
+  <h2>Phone2numeric Filter</h2>
+  <p><strong>Converts an alphanumeric phone number to a numeric phone number:</strong></p>
+  {{ "1800 BITE ME"|phone2numeric }}
+
+  <h2>Random Filter</h2>
+  <p><strong>Returns a random item from the given list:</strong></p>
+  <p>(This list will change every time you refresh the browser)</p>
+  {{ color_list|random }}<br />
+  {{ color_list|random }}<br />
+  {{ color_list|random }}
+
+  <h2>Slice Filter</h2>
+  <p><strong>Slice a list using Python's list slicing syntax:</strong></p>
+  {{ color_list|slice:":3" }}<br />
+  {{ color_list|slice:"2:" }}<br />
+  {{ color_list|slice:":-1" }}<br />
+  {{ color_list|slice:"1:2" }}
+
+  <h2>Slugify Tag</h2>
+  <p><strong>Slugify the given string:</strong></p>
+  {{ "Number of the Beast"|slugify }}
+  <p><strong>Slugify will also strip out everything that isn't an alphanumeric, underscore or hyphen:</strong></p>
+  {{ "slugify won't use these: /\$#^&"|slugify }}
+
+  <h2>Stringformat Filter</h2>
+  <p><strong>Format the value according to the argument. Uses Python's printf style formatting:</strong></p>
+  {{ 314159265|stringformat:"E" }}<br />
+  {{ 3.14159265|stringformat:".2f" }}
+
+  <h2>Striptags Filter</h2>
+  <p><strong>Strips all HTML tags from the value:</strong></p>
+  {{ "<h1>The Title</h1>"|striptags }}
+
+  <h2>Calculating the Difference Between Dates</h2>
+  <p><strong>You can compare the difference between a date value and a given past or future date (similar to Python's timedelta function). To calculate time to a future date, use the <code>timesince</code> filter:</strong></p>
+  {{ today|timesince:future }}
+  <p><strong>To calculate time to a past date, use the <code>timeuntil</code> filter:</strong></p>
+  {{ today|timeuntil:past }}
+  <p>This may seem backwards at first, but it's because the filter argument is the comparison point, not the provided date value.</p>
+
+  <h2>Truncating Strings</h2>
+  <p>It's common to need to truncate a sentence or string for display in a web page. For example, teaser text from the beginning of an article, or for short summaries in article lists. Django provides four filter tags for accomplishing this task---<code>truncatechars</code>, <code>truncatewords</code>, and their HTML-aware versions <code>truncatechars_html</code>, and <code>truncatewords_html</code>.</p>
+  <p><strong>For example, you can truncate a string to a certain number of characters:</strong></p>
+  {{ "<em>The Title</em>"|truncatechars:7 }}<br /></em>
+  <p>Notice in this example, the ending <code>em</code> HTML tag has been cut off. This is because <code>truncatechars</code> will treat HTML tags as regular text.</p>
+  <p><strong>To fix this issue, use <code>truncatechars_html</code> which ignores HTML tags:</strong></p>
+  {{ "<em>The Title</em>"|truncatechars_html:7 }}<br />
+  <p>In each case, Django appends an elipsis (...) to the end of the truncated string.</p>
+  <p><strong>Truncating words works the same way:</strong></p>
+  {{ "<em>The Title</em>"|truncatewords:1 }}<br /></em>
+  <p><strong>HTML aware version:</strong></p>
+  {{ "<em>The Title</em>"|truncatewords_html:1 }}
+
+  <h2>Unordered Lists</h2>
+  <p><strong>Recursively show a nested list:</strong></p>
+  <ul>
+    {{ aussie_bands|unordered_list }}
+  </ul>
+  <p>Note, you must supply the HTML <code>ul</code> tags yourself.</p>
+
+  <h2>Encoding URLs</h2>
+  <p><strong>The <code>urlencode</code> filter formats a string so it can be included in a url:</strong></p>
+  {{ "https://bestbands.example.com/bands?album=Master of Puppets&rating=awesome"|urlencode }}
+  <p>If you need to encode non-ASCII characters, use the internationalized version <code>iriencode</code></p>
+
+  <h2>Creating Hyperlinks</h2>
+  <p><strong>Create hyperlinks with the <code>urlize</code> filter:</strong></p>
+  {{ "The djangobook.com website is awesome!"|urlize }}
+  <p>The filter automatically detects URLs in the provided string and converts them to a hyperlink</p>
+  <p><strong>You can use the <code>urlizetrunc</code> filter to truncated long URLs:</strong></p>
+  {{ "The djangobook.com website is awesome!"|urlizetrunc:11 }}
+
+  <h2>Wordcount Filter</h2>
+  <p><strong>Counts the number of words in a string:</strong></p>
+  {{ "The djangobook.com website is awesome!"|wordcount }}
+
+  <h2>Wordwrap Filter</h2>
+  <p><strong>Wraps the string at the specified number of characters:</strong></p>
+  <pre>{{ "Now I lay me down to sleep"|wordwrap:4 }}</pre>
+
+  <h2>Yesno Filter</h2>
+  <p><strong>Maps <code>True</code>, <code>False</code> and <code>None</code> (optional) to strings. Default values are provided:</strong></p>
+  {{ True|yesno }}<br />
+  {{ False|yesno }}<br />
+  {{ None|yesno }}
+  <p><strong>Or you can create your own custom mapping:</strong></p>
+  {{ True|yesno:"yeah baby,heck no,meh" }}<br />
+  {{ False|yesno:"yeah baby,heck no,meh" }}<br />
+  {{ None|yesno:"yeah baby,heck no,meh" }}
+
+  <h2>The Humanize Filters</h2>
+  <p>The humanize filters add a "human touch" to numbers and dates.</p>
+  <p><strong><code>apnumber</code> spells out the numbers 1-9 Associated Press style:</strong></p>
+  {{ 1|apnumber }}, {{ 5|apnumber }}, {{ 12|apnumber }}<br />
+  <p><strong><code>intcomma</code> adds commas to large numbers. It respects localization (e.g. use '.' instead of ',' for European locales):</strong></p>
+  {{ 4500|intcomma }}; {{ 42123456.78|intcomma }}<br />
+  <p><strong><code>intword</code> uses words for numbers over 1 million:</strong></p>
+  {{ 4000000|intword }}; {{ 42000000000|intword }}<br />
+  <p><strong><code>naturalday</code> uses 'yesterday', 'today', and 'tomorrow' as appropriate:</strong></p>
+  {{ today|naturalday }}<br />
+  <p><strong><code>naturaltime</code> returns a string representation of time durations:</strong></p>
+  {{ today|naturaltime }}; {{ past|naturaltime }}; {{ future|naturaltime }}<br />
+  <p><strong><code>ordinal</code> converts an integer to an ordinal string:</strong></p>
+  {{ 1|ordinal }}, {{ 2|ordinal }}, {{ 3|ordinal }}, {{ 20|ordinal }}
+
+  <h2>Custom Tags and Filters</h2>
+  {{ "James is in rehab again"|reverse }}<br />
+  {{ 100|reverse }}<br />
+  {% create_date today %}<br />
+  {% announcements %}
+
+
+</body>
+</html>
